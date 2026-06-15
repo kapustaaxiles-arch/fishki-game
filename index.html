@@ -3,237 +3,73 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Фишки Sakura 2.0</title>
 
-<style>
-body{
-margin:0;
-font-family:Arial,sans-serif;
-background:linear-gradient(135deg,#ffb6d5,#d69cff);
-color:white;
-text-align:center;
-}
+<title>🌸 Фишки Sakura 3.0</title>
 
-.container{
-padding:20px;
-}
-
-.card{
-background:rgba(255,255,255,.15);
-backdrop-filter:blur(10px);
-border-radius:20px;
-padding:20px;
-margin-top:20px;
-}
-
-button{
-padding:12px 25px;
-margin:5px;
-border:none;
-border-radius:15px;
-font-size:16px;
-font-weight:bold;
-cursor:pointer;
-}
-
-.main{
-background:#ff4da6;
-color:white;
-}
-
-.case{
-background:#ffd700;
-}
-
-.collection{
-background:#8a5cff;
-color:white;
-}
-
-.chip{
-font-size:28px;
-margin-top:15px;
-animation:pop .4s;
-}
-
-@keyframes pop{
-0%{transform:scale(0);}
-100%{transform:scale(1);}
-}
-
-.common{color:white;}
-.rare{color:#4fc3ff;}
-.epic{color:#c266ff;}
-.legendary{color:#ffd700;}
-
-#collectionBox{
-display:none;
-margin-top:20px;
-background:rgba(0,0,0,.2);
-padding:15px;
-border-radius:15px;
-}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <div class="container">
 
-<h1>🌸 Фишки Sakura 2.0</h1>
+<div class="header">
+<h1>🌸 Фишки Sakura 3.0</h1>
+
+<div class="stats">
+<div>💰 <span id="coins">0</span></div>
+<div>⭐ Уровень: <span id="level">1</span></div>
+<div>⚡ XP: <span id="xp">0</span></div>
+<div>📚 Фишек: <span id="count">0</span></div>
+</div>
+
+</div>
 
 <div class="card">
 
-<h2>💰 Монеты: <span id="coins">0</span></h2>
-<h3>📚 Коллекция: <span id="count">0</span></h3>
+<h2>🎁 Паки</h2>
 
-<button class="main" onclick="getChip()">🎁 Получить фишку</button>
-<button class="case" onclick="openCase()">🎰 Кейс (100)</button>
-<button class="collection" onclick="toggleCollection()">📖 Коллекция</button>
+<button class="primary" onclick="openPack(100)">
+Базовый пак (100)
+</button>
 
-<div id="result" class="chip"></div>
+<button class="blue" onclick="openPack(500)">
+Редкий пак (500)
+</button>
 
-<div id="collectionBox">
-<h3>Мои фишки</h3>
-<div id="collectionList"></div>
+<button class="gold" onclick="openPack(2000)">
+Легендарный пак (2000)
+</button>
+
+<button class="primary" onclick="dailyReward()">
+📅 Ежедневная награда
+</button>
+
+</div>
+
+<div class="card">
+
+<h2>🏆 Последняя фишка</h2>
+
+<div id="lastChip">
+Открой пак
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>📚 Коллекция</h2>
+
+<div id="collection" class="grid">
 </div>
 
 </div>
 
 </div>
 
-<script>
-
-let coins=parseInt(localStorage.getItem("coins"))||0;
-let collection=JSON.parse(localStorage.getItem("collection"))||[];
-
-const chips=[
-
-{name:"🌸 Сакура",rarity:"common"},
-{name:"🍀 Клевер",rarity:"common"},
-{name:"⭐ Звезда",rarity:"common"},
-
-{name:"💎 Алмаз",rarity:"rare"},
-{name:"🔥 Огненная",rarity:"rare"},
-{name:"❄️ Ледяная",rarity:"rare"},
-
-{name:"👑 Королевская",rarity:"epic"},
-{name:"🐉 Дракон",rarity:"epic"},
-
-{name:"🌈 Радужная",rarity:"legendary"},
-{name:"🦄 Единорог",rarity:"legendary"}
-
-];
-
-update();
-
-function randomChip(){
-
-let r=Math.random();
-
-if(r<0.60){
-return chips.filter(x=>x.rarity=="common")[Math.floor(Math.random()*3)];
-}
-
-if(r<0.85){
-return chips.filter(x=>x.rarity=="rare")[Math.floor(Math.random()*3)];
-}
-
-if(r<0.95){
-return chips.filter(x=>x.rarity=="epic")[Math.floor(Math.random()*2)];
-}
-
-return chips.filter(x=>x.rarity=="legendary")[Math.floor(Math.random()*2)];
-
-}
-
-function getChip(){
-
-let chip=randomChip();
-
-collection.push(chip.name);
-
-switch(chip.rarity){
-
-case "common":
-coins+=10;
-break;
-
-case "rare":
-coins+=25;
-break;
-
-case "epic":
-coins+=50;
-break;
-
-case "legendary":
-coins+=100;
-break;
-
-}
-
-document.getElementById("result").innerHTML=
-`<div class="${chip.rarity}">
-${chip.name}<br>
-${chip.rarity.toUpperCase()}
-</div>`;
-
-save();
-update();
-
-}
-
-function openCase(){
-
-if(coins<100){
-alert("Недостаточно монет!");
-return;
-}
-
-coins-=100;
-
-let chip=randomChip();
-
-collection.push(chip.name);
-
-document.getElementById("result").innerHTML=
-`🎰 Выпало:<br><div class="${chip.rarity}">
-${chip.name}<br>${chip.rarity.toUpperCase()}
-</div>`;
-
-save();
-update();
-
-}
-
-function toggleCollection(){
-
-let box=document.getElementById("collectionBox");
-
-box.style.display=
-box.style.display=="block"
-?"none":"block";
-
-document.getElementById("collectionList").innerHTML=
-collection.join(" ");
-
-}
-
-function save(){
-
-localStorage.setItem("coins",coins);
-localStorage.setItem("collection",JSON.stringify(collection));
-
-}
-
-function update(){
-
-document.getElementById("coins").textContent=coins;
-document.getElementById("count").textContent=collection.length;
-
-}
-
-</script>
+<script src="chips.js"></script>
+<script src="app.js"></script>
 
 </body>
 </html>
