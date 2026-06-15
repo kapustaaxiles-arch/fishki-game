@@ -3,252 +3,235 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🌸 Фишки 2.0</title>
+<title>Фишки Sakura 2.0</title>
 
 <style>
 body{
 margin:0;
 font-family:Arial,sans-serif;
-background:linear-gradient(180deg,#1c1024,#2d143f,#4b1f63);
+background:linear-gradient(135deg,#ffb6d5,#d69cff);
 color:white;
 text-align:center;
+}
+
+.container{
 padding:20px;
 }
 
 .card{
-max-width:420px;
-margin:auto;
-background:rgba(255,255,255,.08);
+background:rgba(255,255,255,.15);
 backdrop-filter:blur(10px);
 border-radius:20px;
 padding:20px;
-box-shadow:0 0 20px rgba(255,105,180,.3);
-}
-
-h1{
-color:#ffb6d9;
+margin-top:20px;
 }
 
 button{
-width:100%;
-padding:15px;
-margin-top:10px;
+padding:12px 25px;
+margin:5px;
 border:none;
-border-radius:12px;
-font-size:18px;
-cursor:pointer;
+border-radius:15px;
+font-size:16px;
 font-weight:bold;
+cursor:pointer;
 }
 
-.open{
-background:#ff5fa2;
+.main{
+background:#ff4da6;
 color:white;
 }
 
-.shop{
-background:#ffca55;
-}
-
-.duel{
-background:#4da6ff;
-color:white;
+.case{
+background:#ffd700;
 }
 
 .collection{
-margin-top:20px;
-padding:10px;
-background:rgba(255,255,255,.08);
-border-radius:15px;
+background:#8a5cff;
+color:white;
 }
 
 .chip{
-padding:8px;
-margin:5px;
-border-radius:10px;
-}
-
-.common{background:#666;}
-.rare{background:#2196f3;}
-.epic{background:#9c27b0;}
-.legendary{
-background:gold;
-color:black;
-font-weight:bold;
-}
-
-#result{
+font-size:28px;
 margin-top:15px;
-font-size:22px;
-font-weight:bold;
+animation:pop .4s;
 }
 
-.small{
-opacity:.8;
-font-size:14px;
+@keyframes pop{
+0%{transform:scale(0);}
+100%{transform:scale(1);}
+}
+
+.common{color:white;}
+.rare{color:#4fc3ff;}
+.epic{color:#c266ff;}
+.legendary{color:#ffd700;}
+
+#collectionBox{
+display:none;
+margin-top:20px;
+background:rgba(0,0,0,.2);
+padding:15px;
+border-radius:15px;
 }
 </style>
 </head>
-
 <body>
 
-<div class="card">
+<div class="container">
 
-<h1>🌸 Фишки 2.0</h1>
+<h1>🌸 Фишки Sakura 2.0</h1>
+
+<div class="card">
 
 <h2>💰 Монеты: <span id="coins">0</span></h2>
 <h3>📚 Коллекция: <span id="count">0</span></h3>
 
-<button class="open" onclick="getChip()">
-🎁 Получить фишку
-</button>
+<button class="main" onclick="getChip()">🎁 Получить фишку</button>
+<button class="case" onclick="openCase()">🎰 Кейс (100)</button>
+<button class="collection" onclick="toggleCollection()">📖 Коллекция</button>
 
-<button class="shop" onclick="buyPack()">
-🛒 Купить набор (50 монет)
-</button>
+<div id="result" class="chip"></div>
 
-<button class="duel" onclick="duel()">
-⚔️ Дуэль
-</button>
-
-<div id="result"></div>
-
-<div class="collection">
-<h3>🏆 Коллекция</h3>
-<div id="chips"></div>
+<div id="collectionBox">
+<h3>Мои фишки</h3>
+<div id="collectionList"></div>
 </div>
 
-<p class="small">
-Редкие и легендарные фишки встречаются нечасто 🌸
-</p>
+</div>
 
 </div>
 
 <script>
 
-let coins = Number(localStorage.getItem("coins")) || 100;
-let collection = JSON.parse(localStorage.getItem("collection")) || [];
+let coins=parseInt(localStorage.getItem("coins"))||0;
+let collection=JSON.parse(localStorage.getItem("collection"))||[];
 
-const rarities = [
-{
-name:"Обычная",
-chance:70,
-class:"common",
-reward:5
-},
-{
-name:"Редкая",
-chance:20,
-class:"rare",
-reward:15
-},
-{
-name:"Эпическая",
-chance:8,
-class:"epic",
-reward:40
-},
-{
-name:"Легендарная",
-chance:2,
-class:"legendary",
-reward:150
-}
+const chips=[
+
+{name:"🌸 Сакура",rarity:"common"},
+{name:"🍀 Клевер",rarity:"common"},
+{name:"⭐ Звезда",rarity:"common"},
+
+{name:"💎 Алмаз",rarity:"rare"},
+{name:"🔥 Огненная",rarity:"rare"},
+{name:"❄️ Ледяная",rarity:"rare"},
+
+{name:"👑 Королевская",rarity:"epic"},
+{name:"🐉 Дракон",rarity:"epic"},
+
+{name:"🌈 Радужная",rarity:"legendary"},
+{name:"🦄 Единорог",rarity:"legendary"}
+
 ];
 
-function save(){
-localStorage.setItem("coins",coins);
-localStorage.setItem("collection",JSON.stringify(collection));
 update();
-}
-
-function update(){
-
-document.getElementById("coins").innerText=coins;
-document.getElementById("count").innerText=collection.length;
-
-let html="";
-
-collection.forEach(chip=>{
-html+=`
-<div class="chip ${chip.class}">
-${chip.name}
-</div>
-`;
-});
-
-document.getElementById("chips").innerHTML=html;
-}
 
 function randomChip(){
 
-let roll=Math.random()*100;
+let r=Math.random();
 
-if(roll<70) return rarities[0];
-if(roll<90) return rarities[1];
-if(roll<98) return rarities[2];
+if(r<0.60){
+return chips.filter(x=>x.rarity=="common")[Math.floor(Math.random()*3)];
+}
 
-return rarities[3];
+if(r<0.85){
+return chips.filter(x=>x.rarity=="rare")[Math.floor(Math.random()*3)];
+}
+
+if(r<0.95){
+return chips.filter(x=>x.rarity=="epic")[Math.floor(Math.random()*2)];
+}
+
+return chips.filter(x=>x.rarity=="legendary")[Math.floor(Math.random()*2)];
+
 }
 
 function getChip(){
 
 let chip=randomChip();
 
-collection.push(chip);
-coins+=chip.reward;
+collection.push(chip.name);
 
-document.getElementById("result").innerHTML=
-`✨ Выпала: <b>${chip.name}</b><br>
-+${chip.reward} монет`;
+switch(chip.rarity){
 
-save();
+case "common":
+coins+=10;
+break;
+
+case "rare":
+coins+=25;
+break;
+
+case "epic":
+coins+=50;
+break;
+
+case "legendary":
+coins+=100;
+break;
+
 }
 
-function buyPack(){
+document.getElementById("result").innerHTML=
+`<div class="${chip.rarity}">
+${chip.name}<br>
+${chip.rarity.toUpperCase()}
+</div>`;
 
-if(coins<50){
+save();
+update();
 
+}
+
+function openCase(){
+
+if(coins<100){
 alert("Недостаточно монет!");
 return;
 }
 
-coins-=50;
-
-for(let i=0;i<3;i++){
+coins-=100;
 
 let chip=randomChip();
-collection.push(chip);
-}
+
+collection.push(chip.name);
 
 document.getElementById("result").innerHTML=
-"🎁 Открыт набор из 3 фишек!";
+`🎰 Выпало:<br><div class="${chip.rarity}">
+${chip.name}<br>${chip.rarity.toUpperCase()}
+</div>`;
 
 save();
-}
-
-function duel(){
-
-let win=Math.random()<0.5;
-
-if(win){
-
-coins+=50;
-
-document.getElementById("result").innerHTML=
-"🏆 Победа в дуэли! +50 монет";
-}
-else{
-
-coins=Math.max(0,coins-25);
-
-document.getElementById("result").innerHTML=
-"💀 Поражение! -25 монет";
-}
-
-save();
-}
-
 update();
+
+}
+
+function toggleCollection(){
+
+let box=document.getElementById("collectionBox");
+
+box.style.display=
+box.style.display=="block"
+?"none":"block";
+
+document.getElementById("collectionList").innerHTML=
+collection.join(" ");
+
+}
+
+function save(){
+
+localStorage.setItem("coins",coins);
+localStorage.setItem("collection",JSON.stringify(collection));
+
+}
+
+function update(){
+
+document.getElementById("coins").textContent=coins;
+document.getElementById("count").textContent=collection.length;
+
+}
 
 </script>
 
