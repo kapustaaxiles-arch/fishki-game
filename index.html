@@ -3,73 +3,254 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Фишки 🌸</title>
+<title>🌸 Фишки 2.0</title>
+
 <style>
-body{font-family:Arial,sans-serif;background:#f7d6e6;text-align:center;padding:20px}
-.card{background:white;border-radius:16px;padding:20px;max-width:500px;margin:auto}
-button{padding:10px 20px;border:none;border-radius:10px;cursor:pointer;margin:5px}
-#result{font-size:20px;margin-top:15px}
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:linear-gradient(180deg,#1c1024,#2d143f,#4b1f63);
+color:white;
+text-align:center;
+padding:20px;
+}
+
+.card{
+max-width:420px;
+margin:auto;
+background:rgba(255,255,255,.08);
+backdrop-filter:blur(10px);
+border-radius:20px;
+padding:20px;
+box-shadow:0 0 20px rgba(255,105,180,.3);
+}
+
+h1{
+color:#ffb6d9;
+}
+
+button{
+width:100%;
+padding:15px;
+margin-top:10px;
+border:none;
+border-radius:12px;
+font-size:18px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.open{
+background:#ff5fa2;
+color:white;
+}
+
+.shop{
+background:#ffca55;
+}
+
+.duel{
+background:#4da6ff;
+color:white;
+}
+
+.collection{
+margin-top:20px;
+padding:10px;
+background:rgba(255,255,255,.08);
+border-radius:15px;
+}
+
+.chip{
+padding:8px;
+margin:5px;
+border-radius:10px;
+}
+
+.common{background:#666;}
+.rare{background:#2196f3;}
+.epic{background:#9c27b0;}
+.legendary{
+background:gold;
+color:black;
+font-weight:bold;
+}
+
+#result{
+margin-top:15px;
+font-size:22px;
+font-weight:bold;
+}
+
+.small{
+opacity:.8;
+font-size:14px;
+}
 </style>
 </head>
+
 <body>
+
 <div class="card">
-<h1>🌸 Фишки</h1>
-<p>Монеты: <span id="coins">0</span></p>
-<p>Коллекция: <span id="count">0</span> фишек</p>
-<button onclick="getChip()">🎁 Получить фишку</button>
-<button onclick="duel()">⚔️ Дуэль</button>
+
+<h1>🌸 Фишки 2.0</h1>
+
+<h2>💰 Монеты: <span id="coins">0</span></h2>
+<h3>📚 Коллекция: <span id="count">0</span></h3>
+
+<button class="open" onclick="getChip()">
+🎁 Получить фишку
+</button>
+
+<button class="shop" onclick="buyPack()">
+🛒 Купить набор (50 монет)
+</button>
+
+<button class="duel" onclick="duel()">
+⚔️ Дуэль
+</button>
+
 <div id="result"></div>
-<ul id="list"></ul>
+
+<div class="collection">
+<h3>🏆 Коллекция</h3>
+<div id="chips"></div>
+</div>
+
+<p class="small">
+Редкие и легендарные фишки встречаются нечасто 🌸
+</p>
+
 </div>
 
 <script>
-let coins=0;
-let collection=[];
-const rarities=[
-["🟤 Обычная",60],
-["🔵 Редкая",25],
-["🟣 Эпическая",10],
-["🟡 Легендарная",4],
-["🌸 Сакура",1]
+
+let coins = Number(localStorage.getItem("coins")) || 100;
+let collection = JSON.parse(localStorage.getItem("collection")) || [];
+
+const rarities = [
+{
+name:"Обычная",
+chance:70,
+class:"common",
+reward:5
+},
+{
+name:"Редкая",
+chance:20,
+class:"rare",
+reward:15
+},
+{
+name:"Эпическая",
+chance:8,
+class:"epic",
+reward:40
+},
+{
+name:"Легендарная",
+chance:2,
+class:"legendary",
+reward:150
+}
 ];
 
-function randomChip(){
- let r=Math.random()*100,s=0;
- for(let item of rarities){
-   s+=item[1];
-   if(r<s) return item[0];
- }
- return "🟤 Обычная";
+function save(){
+localStorage.setItem("coins",coins);
+localStorage.setItem("collection",JSON.stringify(collection));
+update();
 }
 
-function render(){
- document.getElementById("coins").textContent=coins;
- document.getElementById("count").textContent=collection.length;
- document.getElementById("list").innerHTML=collection.map(x=>"<li>"+x+"</li>").join("");
+function update(){
+
+document.getElementById("coins").innerText=coins;
+document.getElementById("count").innerText=collection.length;
+
+let html="";
+
+collection.forEach(chip=>{
+html+=`
+<div class="chip ${chip.class}">
+${chip.name}
+</div>
+`;
+});
+
+document.getElementById("chips").innerHTML=html;
+}
+
+function randomChip(){
+
+let roll=Math.random()*100;
+
+if(roll<70) return rarities[0];
+if(roll<90) return rarities[1];
+if(roll<98) return rarities[2];
+
+return rarities[3];
 }
 
 function getChip(){
- const chip=randomChip();
- collection.push(chip);
- document.getElementById("result").innerHTML="Получена фишка: <b>"+chip+"</b>";
- render();
+
+let chip=randomChip();
+
+collection.push(chip);
+coins+=chip.reward;
+
+document.getElementById("result").innerHTML=
+`✨ Выпала: <b>${chip.name}</b><br>
++${chip.reward} монет`;
+
+save();
+}
+
+function buyPack(){
+
+if(coins<50){
+
+alert("Недостаточно монет!");
+return;
+}
+
+coins-=50;
+
+for(let i=0;i<3;i++){
+
+let chip=randomChip();
+collection.push(chip);
+}
+
+document.getElementById("result").innerHTML=
+"🎁 Открыт набор из 3 фишек!";
+
+save();
 }
 
 function duel(){
- if(collection.length===0){
-   document.getElementById("result").textContent="Сначала получи фишку!";
-   return;
- }
- if(Math.random()>0.5){
-   coins+=10;
-   document.getElementById("result").innerHTML="🏆 Победа! +10 монет";
- } else {
-   collection.pop();
-   document.getElementById("result").innerHTML="😢 Поражение. Потеряна фишка.";
- }
- render();
+
+let win=Math.random()<0.5;
+
+if(win){
+
+coins+=50;
+
+document.getElementById("result").innerHTML=
+"🏆 Победа в дуэли! +50 монет";
 }
-render();
+else{
+
+coins=Math.max(0,coins-25);
+
+document.getElementById("result").innerHTML=
+"💀 Поражение! -25 монет";
+}
+
+save();
+}
+
+update();
+
 </script>
+
 </body>
 </html>
