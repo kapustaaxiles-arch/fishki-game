@@ -1,1 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Фишки 🌸</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f7d6e6;text-align:center;padding:20px}
+.card{background:white;border-radius:16px;padding:20px;max-width:500px;margin:auto}
+button{padding:10px 20px;border:none;border-radius:10px;cursor:pointer;margin:5px}
+#result{font-size:20px;margin-top:15px}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>🌸 Фишки</h1>
+<p>Монеты: <span id="coins">0</span></p>
+<p>Коллекция: <span id="count">0</span> фишек</p>
+<button onclick="getChip()">🎁 Получить фишку</button>
+<button onclick="duel()">⚔️ Дуэль</button>
+<div id="result"></div>
+<ul id="list"></ul>
+</div>
 
+<script>
+let coins=0;
+let collection=[];
+const rarities=[
+["🟤 Обычная",60],
+["🔵 Редкая",25],
+["🟣 Эпическая",10],
+["🟡 Легендарная",4],
+["🌸 Сакура",1]
+];
+
+function randomChip(){
+ let r=Math.random()*100,s=0;
+ for(let item of rarities){
+   s+=item[1];
+   if(r<s) return item[0];
+ }
+ return "🟤 Обычная";
+}
+
+function render(){
+ document.getElementById("coins").textContent=coins;
+ document.getElementById("count").textContent=collection.length;
+ document.getElementById("list").innerHTML=collection.map(x=>"<li>"+x+"</li>").join("");
+}
+
+function getChip(){
+ const chip=randomChip();
+ collection.push(chip);
+ document.getElementById("result").innerHTML="Получена фишка: <b>"+chip+"</b>";
+ render();
+}
+
+function duel(){
+ if(collection.length===0){
+   document.getElementById("result").textContent="Сначала получи фишку!";
+   return;
+ }
+ if(Math.random()>0.5){
+   coins+=10;
+   document.getElementById("result").innerHTML="🏆 Победа! +10 монет";
+ } else {
+   collection.pop();
+   document.getElementById("result").innerHTML="😢 Поражение. Потеряна фишка.";
+ }
+ render();
+}
+render();
+</script>
+</body>
+</html>
